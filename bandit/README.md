@@ -18,6 +18,7 @@ Documented answers to the non-trivial questions can be found below, and all the 
 - Writing bash scripts
   - changing file properties with chmod
   - changing ownership with chown
+  - bash globals: $0
 
 - escaping to shell with vim
   - :set, :shell
