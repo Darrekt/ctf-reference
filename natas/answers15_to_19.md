@@ -1,8 +1,7 @@
 # Level 15 - 16
+Inspecting the code shows that there is no explicit way to get the password, so we have to use a blind SQLi to confirm the password character by character.
 
-Inspecting the code shows that there is no explicit way to get the password. So we have to use a blind SQLi to confirm the password character by character.
-
-We'll do this with a python script. The `requests` library to get it done, but how do we make our request pass the login that we had to do to get in here in the first place? Opening up Burp suite and looking in the headers of a HTTP request, we see that the site uses HTTP basic auth, which sends the current password in plaintext:
+We'll do this with a python script. The `requests` library can get it done, but how do we make our request pass the login that we had to do to get in here in the first place? Opening up Burp suite and looking in the headers of a HTTP request, we see that the site uses HTTP basic auth, which sends the current password in plaintext:
 
 `Authorization: Basic bmF0YXMxNTpBd1dqMHc1Y3Z4clppT05nWjlKNXN0TlZrbXhkazM5Sg==`
 
@@ -43,7 +42,6 @@ This works and obtains the password, but it's really slow. We are doing possibly
 But they probably aren't worth the effort right now.
 
 # Level 16 - 17
-
 We've got another needle in a haystack exercise. However, this time we see that the characters we would usually use to escape the `grep` command have been blacklisted. Additionally, the `$key` is now surrounded by quotes and is purely a string.
 
 ```php
@@ -54,7 +52,7 @@ if(preg_match('/[;|&`\'"]/',$key)) {
 }
 ```
 
-We're restricted to using grep honestly: no shell escapes or searching multiple files. Fortunately, we have a way to inject raw terminal code into the substring that we are matching. Therefore if we search a very specific word in the dictionary, followed by our grep query, there will be no result if our grep query returned a line. An example is as follows:
+We're restricted to using grep honestly: no shell escapes or searching multiple files. Fortunately, we have a way to inject raw terminal code into the substring that we are matching using bash substitution. Therefore if we search a very specific word in the dictionary, followed by our grep query, there will be no result if our grep query returned a line. An example is as follows:
 
 ```
 Input: thumps
@@ -106,10 +104,7 @@ while (len(hacc) < 32):
 ```
 
 # Level 17 - 18
-
-The source code has been changed! We now have a user query system that does not provide any feedback. Obviously, this is a blind SQLi.
-
-Let's look at how we can exploit the query:
+The source code has been changed! We now have a user query system that does not provide any feedback. Obviously, this is a blind SQLi. Let's look at how we can exploit the query:
 
 ```php
 $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\"";
@@ -265,3 +260,10 @@ for i in range(1, 641):
         print(response.text)
         break
 ```
+
+# Level 19 to 20 
+[Credit](http://floatingbytes.blogspot.com/2014/10/wargames-natas-19.html)
+
+This level appears the same as before, but they hint that session IDs are no longer in order. We'll start by gathering information. We want to see what convention the new PHPSESSIONID follows, so we're going to try multiple inputs and use the browser developer tools to inspect the cookie, delete it, and try a new username.
+
+To start, hit F12 in your browser. We're going to go to the Application tab, and in the left menu we should be able to inspect cookies. Submitting an empty form results in 
