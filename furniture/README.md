@@ -1,4 +1,7 @@
 # CSB Furniture store
+This is a brief walkthrough of a simple pentest VM, courtesy of the University of Birmingham.
+Token submission [here](https://www.cs.bham.ac.uk/internal/courses/comp-sec/publictokens/).
+
 
 ## Product List Token
 Investigate the products: Find a SQL injection attack that makes the site display all of the products it has in the database. One of the products that is not normally displayed includes a token, submit this token to the token submission website.
@@ -23,6 +26,8 @@ Which gets us the solution. We see the flag on the next page item called My Litt
 
 
 ## Hidden Market Token
+Investigate the website’s cookies and find a way to
+get access to the hidden content on the site using an account you have created on the website yourself. You will find a token displayed on the main page of the hidden site, submit this token. (Hint: remember that if a hash is not “salted” it can be vulnerable to an offline dictionary attack.)
 
 ### Methodology
 Using burp and attempting to sign in, we see that the sign in is done with a simple POST request, sending the credentials in cleartext. There is also a PHP session ID as a cookie.
@@ -39,7 +44,9 @@ Therefore, we can get the solution by using Burp to replace the second hash stri
 
 The token is found immediate on the presence of this cookie.
 
+
 ## Admin Page Password Hunt
+Find the admin control panel, and from here log into the User Management page by finding the password. On this page you will find another token, submit this.
 
 ### Methodology
 Visiting the admin page with our spoofed cookie, it prompts us for a password. The page source contains obfuscated code, so lets try seeing what it does. 
@@ -81,13 +88,27 @@ $(document)['ready'](function() {
 
 The code has the md5 has of the password in plaintext in the if statement, so a reverse MD5 lookup on the string `e2077d878327026c3cc4e35a6e7037d7` reveals that the password is `monkey95`. The token is now on the admin panel in plaintext.
 
+
 ## Stored XSS Vulnerability
+Find a stored XSS on one of the pages of the website and use it to
+deliver a payload that will raise an alert ”XSS!” when the vulnerable page is visited.
+There is no token for this exercise.
+
+### Methodology
 The add products page is the clear answer here: the name and description fields are properly escaped, but the price field is not, so putting the script in there will result in a successful exploit.
 
+
 ## Shell Injection Vulnerability
+Shell injection: Find a shell code injection attack on the website and use it to view the file /webtoken. Submit this to the token website. (Note: reading the token by exploiting the file upload vulnerability of exercise (4) above is not what you are asked here.)
+
+### Methodology
 This is in the file uploads area in the admin panel. It looks like it is doing a simple `ls`, so we simply try `; cat /webtoken` and it works.
 
+
 ## Database Access Token
+Get access to the database: Find a file upload attack and use it to upload some php that lets you view the source code of the mysql.php page. On this page you will find the SQL database password. Use this to access the database where you will find another token. Submit this token to the token submission website.
+
+### Methodology
 I got lazy here: The key is to use Burp and some googling to create and spoof a polyglot as a picture with .jpg extension. However, since there was a convenient shell injection, I just used the `cat` command to spit out the source code.
 
 ```php
